@@ -18,6 +18,12 @@ export const CAPTION_PRESETS = [
     text: "Barakallah Ustadz Adi Hidayat\nsumber video dari Youtube Ustadz Adi Hidayat Official",
     hashtags: ["#ustadzadihidayat", "#uah", "#ceramahsingkat", "#kajianislam", "#dakwahislam"],
   },
+  {
+    id: "auto",
+    label: "Otomatis (AI)",
+    text: "Caption ditulis otomatis oleh AI berdasarkan judul setiap video.",
+    hashtags: [] as string[],
+  },
 ] as const;
 
 export type CaptionPresetId = (typeof CAPTION_PRESETS)[number]["id"];
@@ -27,6 +33,9 @@ export const stripExt = (name: string) => name.replace(/\.[^.]+$/, "");
 /** Judul = nama file, lalu teks preset, lalu 5 hashtag relevan. */
 export function buildCaption(fileName: string, presetId: CaptionPresetId) {
   const preset = CAPTION_PRESETS.find((p) => p.id === presetId) ?? CAPTION_PRESETS[0];
+  if (preset.id === "auto") {
+    return `${stripExt(fileName)}\n\n(caption lengkap ditulis AI saat video diantrikan)`;
+  }
   return `${stripExt(fileName)}\n\n${preset.text}\n\n${preset.hashtags.join(" ")}`.slice(0, 2200);
 }
 
