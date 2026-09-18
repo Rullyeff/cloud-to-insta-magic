@@ -5,7 +5,6 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   CalendarClock,
   Clapperboard,
-  Film,
   Link as LinkIcon,
   Play,
   RefreshCw,
@@ -18,7 +17,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AccountPicker, useAccounts } from "@/components/AccountPicker";
-import { DrivePicker, formatBytes } from "@/components/DrivePicker";
+import { DrivePicker } from "@/components/DrivePicker";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
