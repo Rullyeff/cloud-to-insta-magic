@@ -100,8 +100,8 @@ export async function createVideoContainer(opts: {
   if (opts.mediaType === "REELS") {
     params["caption"] = opts.caption;
     params["share_to_feed"] = "true";
-    // Crosspost otomatis ke Halaman Facebook yang tertaut saat Reels terbit.
-    params["share_to_facebook"] = "true";
+    // Crosspost bawaan IG (share_to_facebook) sengaja tidak dipakai lagi;
+    // video diunggah langsung ke Halaman Facebook setelah Reels terbit.
   }
   const res = await graph<{ id: string }>(`/${opts.igUserId}/media`, { method: "POST", params });
   return res.id;
