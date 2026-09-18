@@ -381,13 +381,30 @@ function Home() {
                     <p className="mt-1 whitespace-pre-line text-xs text-muted-foreground">
                       {p.text}
                     </p>
-                    <p className="mt-1 text-xs text-primary">{p.hashtags.join(" ")}</p>
+                    {p.hashtags.length > 0 && (
+                      <p className="mt-1 text-xs text-primary">{p.hashtags.join(" ")}</p>
+                    )}
                   </label>
                 ))}
               </div>
             </div>
 
-            {list.length > 0 && (
+            {list.length > 0 && preset === "auto" && (
+              <div className="rounded-xl border border-border bg-surface p-3">
+                <p className="mb-2 text-xs font-medium text-muted-foreground">
+                  Contoh caption AI untuk video pertama
+                </p>
+                {autoPreview.isLoading ? (
+                  <p className="text-xs text-muted-foreground">AI sedang menulis caption…</p>
+                ) : autoPreview.isError ? (
+                  <p className="text-xs text-destructive">Gagal membuat contoh caption.</p>
+                ) : (
+                  <p className="whitespace-pre-line text-xs">{autoPreview.data}</p>
+                )}
+              </div>
+            )}
+
+            {list.length > 0 && preset !== "auto" && (
               <div className="rounded-xl border border-border bg-surface p-3">
                 <p className="mb-2 text-xs font-medium text-muted-foreground">
                   Contoh caption video pertama
