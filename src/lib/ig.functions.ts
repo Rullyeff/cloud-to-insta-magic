@@ -114,6 +114,15 @@ export const enqueuePosts = createServerFn({ method: "POST" })
     return { created: ids.length };
   });
 
+/** Buat contoh caption otomatis (AI) untuk satu judul video — untuk pratinjau di layar. */
+export const previewAutoCaption = createServerFn({ method: "GET" })
+  .inputValidator((d: { fileName: string }) => d)
+  .handler(async ({ data }) => {
+    const { generateAutoCaptions } = await import("./captions.server");
+    const [caption] = await generateAutoCaptions([data.fileName]);
+    return caption;
+  });
+
 /** Menjadwalkan SEMUA video dalam satu folder Drive ke slot 13:00 / 17:00 / 20:00 WITA. */
 export const enqueueFolder = createServerFn({ method: "POST" })
   .inputValidator((d) =>
@@ -121,15 +130,23 @@ export const enqueueFolder = createServerFn({ method: "POST" })
       .object({
         folderId: z.string(),
         accountIds: z.array(z.string().uuid()).min(1),
-        captionPreset: z.enum(["zaidul", "uas", "uah"]),
+        captionPreset: z.enum(["zaidul", "uas", "uah", "auto"]),
       })
       .parse(d),
   )
   .handler(async ({ data }) => {
     const { listVideos } = await import("./drive.server");
-    const { buildCaption, nextSlots } = await import("./captions");
+    const { buildCaption, nextSlots, stripExt } = await import("./captions");
     const videos = await listVideos(data.folderId);
     if (!videos.length) return { created: 0, videos: 0, firstSlot: null as string | null };
+
+    // Preset "auto": AI menulis caption per video, satu panggilan untuk semua judul.
+    const autoCaptions =
+      data.captionPreset === "auto"
+        ? await (await import("./captions.server")).generateAutoCaptions(
+            videos.map((v) => stripExt(v.name)),
+          )
+        : null;
 
     const slots = nextSlots(videos.length);
     const rows = videos.flatMap((v, i) =>
@@ -140,7 +157,7 @@ export const enqueueFolder = createServerFn({ method: "POST" })
         drive_file_name: v.name,
         drive_file_size: v.size,
         media_type: "REELS" as const,
-        caption: buildCaption(v.name, data.captionPreset),
+        caption: autoCaptions ? autoCaptions[i]! : buildCaption(v.name, data.captionPreset),
         scheduled_at: slots[i] ?? null,
       })),
     );
