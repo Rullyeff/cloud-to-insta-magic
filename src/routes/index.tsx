@@ -486,111 +486,110 @@ function Home() {
         )}
 
         {rows.map((p) => (
-          <div
-            key={p.id}
-            className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-3 last:border-0"
-          >
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium">{p.drive_file_name}</p>
-              <p className="truncate text-xs text-muted-foreground">
-                @{username(p.account_id)} · {p.media_type === "REELS" ? "Reels" : "Story"} ·{" "}
-                {p.scheduled_at
-                  ? `jadwal ${fmt(p.scheduled_at)} WITA`
-                  : fmt(p.published_at ?? p.created_at)}
-              </p>
-              {p.status === "published" && (
-                <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                  {p.permalink && (
-                    <a
-                      href={p.permalink}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1 text-primary hover:underline"
-                    >
-                      <LinkIcon className="size-3" />
-                      <span className="max-w-[16rem] truncate">{p.permalink}</span>
-                    </a>
-                  )}
-                  {p.drive_deleted_at && (
-                    <span className="inline-flex items-center gap-1">
-                      <Trash2 className="size-3" /> File Drive terhapus permanen
-                    </span>
-                  )}
-                </div>
-              )}
-              {p.error && <p className="mt-1 truncate text-xs text-destructive">{p.error}</p>}
+          <div key={p.id} className="border-b border-border px-4 py-3 last:border-0">
+            <div className="flex items-start gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">{p.drive_file_name}</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  @{username(p.account_id)} · {p.media_type === "REELS" ? "Reels" : "Story"} ·{" "}
+                  {p.scheduled_at
+                    ? `jadwal ${fmt(p.scheduled_at)} WITA`
+                    : fmt(p.published_at ?? p.created_at)}
+                </p>
+              </div>
+              <StatusBadge status={p.status} />
             </div>
 
-            <div className="flex w-36 flex-col items-end gap-1">
-              <StatusBadge status={p.status} />
-              <div className="h-1 w-full overflow-hidden rounded-full bg-primary/20">
+            {p.status === "published" && (p.permalink || p.drive_deleted_at) && (
+              <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                {p.permalink && (
+                  <a
+                    href={p.permalink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-primary hover:underline"
+                  >
+                    <LinkIcon className="size-3" />
+                    <span className="max-w-full truncate sm:max-w-[16rem]">{p.permalink}</span>
+                  </a>
+                )}
+                {p.drive_deleted_at && (
+                  <span className="inline-flex items-center gap-1">
+                    <Trash2 className="size-3" /> File Drive terhapus permanen
+                  </span>
+                )}
+              </div>
+            )}
+            {p.error && <p className="mt-1 truncate text-xs text-destructive">{p.error}</p>}
+
+            <div className="mt-2 flex items-center gap-2">
+              <div className="h-1 w-16 flex-none overflow-hidden rounded-full bg-primary/20 sm:w-24">
                 <div
                   className={`h-full rounded-full transition-all ${p.status === "failed" ? "bg-destructive" : "bg-primary"}`}
                   style={{ width: `${STAGE[p.status] ?? 0}%` }}
                 />
               </div>
-              <span className="text-[10px] text-muted-foreground">
+              <span className="truncate text-[10px] text-muted-foreground">
                 {STAGE_LABEL[p.status] ?? p.status} · {STAGE[p.status] ?? 0}%
               </span>
-            </div>
-
-            <div className="flex gap-1">
-              {p.permalink && (
-                <a
-                  href={p.permalink}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-md px-2 py-1 text-xs text-primary hover:underline"
-                >
-                  Lihat
-                </a>
-              )}
-              {p.status !== "published" && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Posting sekarang"
-                  title="Posting sekarang"
-                  onClick={() =>
-                    guard("Kiriman diposting sekarang.", () => postNow({ data: { id: p.id } }))
-                  }
-                >
-                  <Send />
-                </Button>
-              )}
-              {ACTIVE.includes(p.status) && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Batalkan"
-                  title="Batalkan"
-                  onClick={() => guard("Kiriman dibatalkan.", () => cancel({ data: { id: p.id } }))}
-                >
-                  <X />
-                </Button>
-              )}
-              {(p.status === "failed" || p.status === "cancelled") && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Coba lagi"
-                  title="Coba lagi"
-                  onClick={() => guard("Kiriman diulang.", () => retry({ data: { id: p.id } }))}
-                >
-                  <RotateCcw />
-                </Button>
-              )}
-              {p.status !== "published" && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Hapus"
-                  title="Hapus"
-                  onClick={() => guard("Kiriman dihapus.", () => remove({ data: { id: p.id } }))}
-                >
-                  <Trash2 />
-                </Button>
-              )}
+              <div className="ml-auto flex flex-none gap-0.5">
+                {p.permalink && (
+                  <a
+                    href={p.permalink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-md px-2 py-1 text-xs text-primary hover:underline"
+                  >
+                    Lihat
+                  </a>
+                )}
+                {p.status !== "published" && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Posting sekarang"
+                    title="Posting sekarang"
+                    onClick={() =>
+                      guard("Kiriman diposting sekarang.", () => postNow({ data: { id: p.id } }))
+                    }
+                  >
+                    <Send />
+                  </Button>
+                )}
+                {ACTIVE.includes(p.status) && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Batalkan"
+                    title="Batalkan"
+                    onClick={() => guard("Kiriman dibatalkan.", () => cancel({ data: { id: p.id } }))}
+                  >
+                    <X />
+                  </Button>
+                )}
+                {(p.status === "failed" || p.status === "cancelled") && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Coba lagi"
+                    title="Coba lagi"
+                    onClick={() => guard("Kiriman diulang.", () => retry({ data: { id: p.id } }))}
+                  >
+                    <RotateCcw />
+                  </Button>
+                )}
+                {p.status !== "published" && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Hapus"
+                    title="Hapus"
+                    onClick={() => guard("Kiriman dihapus.", () => remove({ data: { id: p.id } }))}
+                  >
+                    <Trash2 />
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         ))}
