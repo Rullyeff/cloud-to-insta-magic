@@ -193,7 +193,6 @@ function Home() {
   });
 
   const list = videos.data ?? [];
-  const slots = list.length ? nextSlots(list.length) : [];
 
   const allRows = posts.data ?? [];
   const rows = accountId ? allRows.filter((p) => p.account_id === accountId) : allRows;
