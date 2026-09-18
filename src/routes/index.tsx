@@ -402,30 +402,6 @@ function Home() {
           </div>
         </div>
 
-        {list.length > 0 && (
-          <div className="overflow-hidden rounded-xl border border-border bg-surface">
-            <p className="border-b border-border px-4 py-2 text-xs font-medium text-muted-foreground">
-              Pratinjau jadwal (WITA)
-            </p>
-            <div className="max-h-72 overflow-y-auto">
-              {list.map((v, i) => (
-                <div
-                  key={v.id}
-                  className="flex items-center gap-3 border-b border-border px-4 py-2 text-sm last:border-0"
-                >
-                  <span className="grid size-8 shrink-0 place-items-center rounded bg-muted">
-                    <Film className="size-4" />
-                  </span>
-                  <span className="min-w-0 flex-1 truncate">{v.name}</span>
-                  <span className="shrink-0 text-xs text-muted-foreground">
-                    {formatBytes(v.size)}
-                  </span>
-                  <span className="shrink-0 text-xs font-medium">{fmt(slots[i] ?? null)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </section>
 
       <div className="mt-10 mb-3 flex flex-wrap items-center justify-between gap-2">
