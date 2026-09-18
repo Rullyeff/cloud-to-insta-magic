@@ -237,6 +237,50 @@ export const publishPostNow = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/** Bagikan satu kiriman yang sudah tayang ke Halaman Facebook tertaut. */
+export const shareToFacebook = createServerFn({ method: "POST" })
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data }) => {
+    const sb = await db();
+    const { data: post } = await sb
+      .from("posts")
+      .select("id, caption, permalink, storage_path, status, account_id")
+      .eq("id", data.id)
+      .single();
+    if (!post) throw new Error("Kiriman tidak ditemukan.");
+    if (post.status !== "published") throw new Error("Kiriman ini belum tayang di Instagram.");
+
+    const { data: account } = await sb
+      .from("ig_accounts")
+      .select("page_id")
+      .eq("id", post.account_id)
+      .single();
+    if (!account?.page_id) throw new Error("Akun ini belum tertaut ke Halaman Facebook.");
+
+    const { publishFacebookVideo, publishFacebookLink } = await import("./meta.server");
+
+    if (post.storage_path) {
+      const { signedVideoUrl } = await import("./storage.server");
+      const url = await signedVideoUrl(post.storage_path).catch(() => null);
+      if (url) {
+        await publishFacebookVideo({
+          pageId: account.page_id,
+          videoUrl: url,
+          description: post.caption ?? "",
+        });
+        return { ok: true, mode: "video" as const };
+      }
+    }
+
+    if (!post.permalink) throw new Error("Video sudah dibersihkan dan tautan Instagram belum ada.");
+    await publishFacebookLink({
+      pageId: account.page_id,
+      link: post.permalink,
+      message: post.caption ?? undefined,
+    });
+    return { ok: true, mode: "link" as const };
+  });
+
 /** Hentikan semua kiriman yang masih aktif di antrian. */
 export const stopQueue = createServerFn({ method: "POST" }).handler(async () => {
   const { data, error } = await (await db())
