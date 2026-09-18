@@ -89,11 +89,19 @@ async function finalizePost(post: Post, account: Account, containerId: string) {
       ? (async () => {
           const shareUrl = await signedVideoUrl(post.storage_path!).catch(() => null);
           if (!shareUrl) return;
-          const { publishStory } = await import("./meta.server");
+          const { publishStory, publishFacebookVideo } = await import("./meta.server");
           await publishStory(account.ig_user_id, shareUrl).catch((e) =>
             console.error("story crosspost failed", e),
           );
-          // Halaman Facebook terisi otomatis lewat crosspost Reels Instagram.
+          // Share ke Facebook: unggah video langsung ke Halaman tertaut,
+          // menggantikan tombol "Bagikan ke Facebook" di aplikasi Instagram.
+          if (account.page_id) {
+            await publishFacebookVideo({
+              pageId: account.page_id,
+              videoUrl: shareUrl,
+              description: post.caption,
+            }).catch((e) => console.error("facebook page share failed", e));
+          }
         })()
       : Promise.resolve();
 

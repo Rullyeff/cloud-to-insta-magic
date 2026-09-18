@@ -100,8 +100,8 @@ export async function createVideoContainer(opts: {
   if (opts.mediaType === "REELS") {
     params["caption"] = opts.caption;
     params["share_to_feed"] = "true";
-    // Crosspost otomatis ke Halaman Facebook yang tertaut saat Reels terbit.
-    params["share_to_facebook"] = "true";
+    // Crosspost bawaan IG (share_to_facebook) sengaja tidak dipakai lagi;
+    // video diunggah langsung ke Halaman Facebook setelah Reels terbit.
   }
   const res = await graph<{ id: string }>(`/${opts.igUserId}/media`, { method: "POST", params });
   return res.id;
@@ -147,9 +147,46 @@ export async function publishStory(igUserId: string, videoUrl: string) {
   throw new Error("Story belum selesai diproses.");
 }
 
-// Catatan: Reels tidak lagi diunggah ulang ke Halaman Facebook.
-// Video dikirim sekali ke Instagram dengan crosspost otomatis (share_to_facebook),
-// sehingga di aplikasi Instagram tombol "Bagikan ke Facebook" sudah nonaktif/terpakai.
+/** Ambil token akses Halaman Facebook dari token pengguna. */
+export async function getPageAccessToken(pageId: string) {
+  const res = await graph<{ access_token?: string }>(`/${pageId}`, {
+    params: { fields: "access_token" },
+  });
+  if (!res.access_token) throw new Error("Token Halaman Facebook tidak tersedia.");
+  return res.access_token;
+}
+
+/**
+ * Unggah video langsung ke Halaman Facebook (menggantikan fitur
+ * "Bagikan ke Facebook" bawaan aplikasi Instagram).
+ */
+export async function publishFacebookVideo(opts: {
+  pageId: string;
+  videoUrl: string;
+  description: string;
+}) {
+  const pageToken = await getPageAccessToken(opts.pageId);
+  const params = new URLSearchParams({
+    file_url: opts.videoUrl,
+    description: opts.description,
+    access_token: pageToken,
+  });
+  const res = await fetch(`${GRAPH}/${opts.pageId}/videos`, {
+    method: "POST",
+    body: params,
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+  });
+  const json = (await res.json().catch(() => ({}))) as {
+    id?: string;
+    error?: { message?: string; error_user_msg?: string };
+  };
+  if (!res.ok || json.error || !json.id) {
+    const msg = json.error?.error_user_msg ?? json.error?.message ?? `HTTP ${res.status}`;
+    console.error(`Facebook Page video upload failed: ${msg}`);
+    throw new Error(`Facebook: ${msg}`);
+  }
+  return json.id;
+}
 
 export async function checkTokenStatus() {
   const res = await graph<{ id: string; name?: string }>("/me", { params: { fields: "id,name" } });
