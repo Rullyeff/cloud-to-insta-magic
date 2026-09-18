@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1789743653027,
+      "tag": "0000_create_ig_automation_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789743772630,
+      "tag": "0001_drop_public_video_policy",
+      "breakpoints": true
+    }
+  ]
+}
