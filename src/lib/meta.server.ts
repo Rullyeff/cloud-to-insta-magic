@@ -188,6 +188,34 @@ export async function publishFacebookVideo(opts: {
   return json.id;
 }
 
+/** Bagikan tautan (mis. permalink Instagram) ke Halaman Facebook. */
+export async function publishFacebookLink(opts: {
+  pageId: string;
+  link: string;
+  message?: string;
+}) {
+  const pageToken = await getPageAccessToken(opts.pageId);
+  const params = new URLSearchParams({
+    link: opts.link,
+    access_token: pageToken,
+  });
+  if (opts.message) params.set("message", opts.message);
+  const res = await fetch(`${GRAPH}/${opts.pageId}/feed`, {
+    method: "POST",
+    body: params,
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+  });
+  const json = (await res.json().catch(() => ({}))) as {
+    id?: string;
+    error?: { message?: string; error_user_msg?: string };
+  };
+  if (!res.ok || json.error || !json.id) {
+    const msg = json.error?.error_user_msg ?? json.error?.message ?? `HTTP ${res.status}`;
+    throw new Error(`Facebook: ${msg}`);
+  }
+  return json.id;
+}
+
 export async function checkTokenStatus() {
   const res = await graph<{ id: string; name?: string }>("/me", { params: { fields: "id,name" } });
   return res;
