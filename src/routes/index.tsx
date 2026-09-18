@@ -27,6 +27,7 @@ import {
   deletePost,
   enqueueFolder,
   getDriveVideos,
+  previewAutoCaption,
   publishPostNow,
   retryPost,
   runQueueNow,
@@ -193,6 +194,14 @@ function Home() {
   });
 
   const list = videos.data ?? [];
+
+  const autoPreviewFn = useServerFn(previewAutoCaption);
+  const autoPreview = useQuery({
+    queryKey: ["auto-caption-preview", list[0]?.name],
+    queryFn: () => autoPreviewFn({ data: { fileName: list[0]!.name } }),
+    enabled: preset === "auto" && list.length > 0,
+    staleTime: 300_000,
+  });
 
   const allRows = posts.data ?? [];
   const rows = accountId ? allRows.filter((p) => p.account_id === accountId) : allRows;
