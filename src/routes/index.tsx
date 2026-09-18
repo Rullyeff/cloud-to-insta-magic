@@ -36,7 +36,6 @@ import {
 import {
   CAPTION_PRESETS,
   buildCaption,
-  nextSlots,
   type CaptionPresetId,
 } from "@/lib/captions";
 import { cn } from "@/lib/utils";
